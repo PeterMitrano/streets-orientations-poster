@@ -16,9 +16,12 @@ def main():
     gdf = ox.geocode_to_gdf(list(places.values()))
     print(gdf.display_name)
 
-    # create data for plotting
-    data = {}
+    with open("saved_data.pkl", 'rb') as f:
+        data = pickle.load(f)
+
     for place in places.keys():
+        if place in data:
+            continue
         print(f"Generate data for {place}")
 
         # get undirected graphs with edge bearing attributes
@@ -29,8 +32,8 @@ def main():
             'graph': graph_undirected,
         }
 
-    with open(f"saved_data_{int(time.time())}.pkl", 'wb') as f:
-        pickle.dump(data, f)
+        with open(f"saved_data.pkl", 'wb') as f:
+            pickle.dump(data, f)
 
 
 def plot():
@@ -44,7 +47,8 @@ def plot():
 
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, subplot_kw={"projection": "polar"})
 
-    for ax, (name, graph) in zip(axes.flat, data):
+    for ax, (name, d) in zip(axes.flat, data.items()):
+        graph = d['graph']
         ox.bearing.plot_orientation(graph, ax=ax, title=name, area=True)
 
     # add figure title and save image
@@ -63,3 +67,4 @@ def plot():
 
 if __name__ == '__main__':
     main()
+    # plot()
